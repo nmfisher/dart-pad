@@ -29,8 +29,9 @@ function messageHandler(e) {
 function runFlutterApp(compiledScript, canvasKitBaseUrl) {
   var blob = new Blob([compiledScript], {type: 'text/javascript'});
   var url = URL.createObjectURL(blob);
+  console.log("Using entrypoint url "  + url);
   _flutter.loader.loadEntrypoint({
-    entrypointUrl: url,
+    entrypointUrl: url + "l",
     onEntrypointLoaded: async function(engineInitializer) {
       let appRunner = await engineInitializer.initializeEngine({
         canvasKitBaseUrl: canvasKitBaseUrl,
