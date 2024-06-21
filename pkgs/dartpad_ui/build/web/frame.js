@@ -31,7 +31,7 @@ function runFlutterApp(compiledScript, canvasKitBaseUrl) {
   var url = URL.createObjectURL(blob);
   console.log("Using entrypoint url "  + url);
   _flutter.loader.loadEntrypoint({
-    entrypointUrl: url + "l",
+    entrypointUrl: url ,
     onEntrypointLoaded: async function(engineInitializer) {
       let appRunner = await engineInitializer.initializeEngine({
         canvasKitBaseUrl: canvasKitBaseUrl,
