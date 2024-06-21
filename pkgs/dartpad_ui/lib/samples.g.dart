@@ -35,12 +35,14 @@ abstract final class Samples {
     _googleSdk,
     _counter,
     _sunflower,
+    _thermionViewer
   ];
 
   static const Map<String, List<Sample>> categories = {
     'Dart': [
       _fibonacci,
       _helloWorld,
+      _thermionViewer
     ],
     'Flutter': [
       _counter,
@@ -54,7 +56,7 @@ abstract final class Samples {
 
   static Sample? getById(String? id) => all.firstWhereOrNull((s) => s.id == id);
 
-  static String getDefault({required String type}) => _defaults[type]!;
+  static String getDefault({required String type}) => _thermionViewer.source;
 }
 
 const Map<String, String> _defaults = {
@@ -130,6 +132,89 @@ void main() {
 }
 ''',
 );
+
+const _thermionViewer = Sample(
+    category: 'Ecosystem',
+    icon: 'thermion',
+    name: 'Thermion 3D',
+    id: 'thermion-viewer',
+    source: r'''
+import 'dart:async';
+import 'dart:math';
+
+import 'package:thermion_dart/thermion_dart.dart';
+import 'package:thermion_dart/thermion_dart/compatibility/web/interop/thermion_viewer_wasm.dart';
+import 'package:vector_math/vector_math_64.dart';
+import 'package:web/web.dart';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
+
+void main() async {
+  // boilerplate to setup our rendering context properly on DartPad
+  // you can safely ignore this
+  var module = window.parent!.getProperty("thermion_dart".toJS) as JSObject;
+  var canvas =
+      window.parent!.document!.getElementById('canvas') as HTMLCanvasElement;
+  canvas.width = window.innerWidth * 4;
+  canvas.height = window.innerHeight * 8;
+  print("Canvas dimensions : ${canvas.width}x${canvas.height}");
+
+  // [ThermionViewer] is the main interface for rendering with Thermion
+  // This class lets you load assets, lights, animations, and control the camera.
+  final viewer = ThermionViewerWasm(module: module);
+
+  // since we're not in a Flutter application, we need to initialize this
+  // with the dimensions of the canvas
+  await viewer.initialize(canvas.width, canvas.height);
+
+  // to test that everything is working, we'll just set the background color
+  // to yellow
+  await viewer.setBackgroundColor(1.0, 1.0, 0.0, 1.0);
+
+  // to enable fine-grained control over performance, Thermion only renders
+  // when you explicitly tell it to do so
+  // here, we'll render a single frame
+  await viewer.render();
+
+  // just wait a few seconds so you can marvel at the colour
+  await Future.delayed(Duration(seconds: 3));
+
+  // next, we'll load a skybox, light and a basic cube
+  await viewer.loadSkybox("default_env_skybox.ktx");
+  await viewer.loadIbl("default_env_ibl.ktx");
+  final cube = await viewer.loadGlb("cube.glb");
+
+  // let's move the camera back a bit too so we can see everything properly
+  await viewer.setCameraPosition(0, 1, 8);
+  await viewer.setCameraRotation(Quaternion(1, 0, 0, 0.25));
+
+  await viewer.render();
+
+  // wait a few seconds so you can compare
+  await Future.delayed(Duration(seconds: 3));
+
+  // now let's make it look a bit nicer with some post-processing
+  // you will almost always want this, because otherwise the color grading won't
+  // be correct
+  await viewer.setPostProcessing(true);
+  await viewer.setAntiAliasing(true, false, false);
+  await viewer.render();
+
+  // wait a few seconds
+  await Future.delayed(Duration(seconds: 3));
+
+  // now let's animate the cube and set continuous rendering to true
+  await viewer.setRendering(true);
+
+  final completer = Completer();
+  Timer.periodic(Duration(microseconds: 16667), (t) async {
+    var progress = t.tick / 60.0;
+    var radians = progress * 2 * pi;
+    await viewer.setRotation(cube, radians, 0, 1, 0);
+  });
+  await completer.future;
+}
+''');
 
 const _flameGame = Sample(
   category: 'Ecosystem',

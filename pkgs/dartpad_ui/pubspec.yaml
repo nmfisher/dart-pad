@@ -23,6 +23,8 @@ dependencies:
   url_launcher: ^6.3.0
   vtable: ^0.4.0
   web: ^0.5.1
+  thermion_flutter:
+  thermion_dart:
 
 dev_dependencies:
   flutter_test:
@@ -40,6 +42,7 @@ flutter:
     - assets/idx_192.png
     - assets/RobotoMono-Bold.ttf
     - assets/RobotoMono-Regular.ttf
+    - assets/
 
 dependency_overrides:
   dartpad_shared:

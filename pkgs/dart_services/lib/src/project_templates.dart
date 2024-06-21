@@ -68,6 +68,7 @@ const Set<String> supportedFlutterPackages = {
   'shared_preferences',
   'url_launcher',
   'video_player',
+  'thermion_flutter'
 };
 
 /// The set of packages which indicate that Flutter Web is being used.
@@ -109,6 +110,8 @@ const Set<String> supportedBasicDartPackages = {
   'web',
   'yaml',
   'yaml_edit',
+  'thermion_dart',
+  'animation_tools_dart'
 };
 
 /// The set of all packages whose support in DartPad is deprecated.

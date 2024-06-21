@@ -16,6 +16,7 @@ import 'package:split_view/split_view.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:vtable/vtable.dart';
 
+import 'canvas_widget.dart';
 import 'console.dart';
 import 'docs.dart';
 import 'editor/editor.dart';
@@ -259,9 +260,10 @@ class _DartPadMainPageState extends State<DartPadMainPage>
             appModel.splitDragStateManager.handleSplitChanged();
           });
 
-    final channel = widget.initialChannel != null
-        ? Channel.forName(widget.initialChannel!)
-        : null;
+    // final channel = widget.initialChannel != null
+    //     ? Channel.forName(widget.initialChannel!)
+    //     : null;
+    final channel = Channel.main;
 
     appModel = AppModel();
     appServices = AppServices(
@@ -375,15 +377,19 @@ class _DartPadMainPageState extends State<DartPadMainPage>
 
                 return Column(
                   children: [
-                    SizedBox(height: domHeight, child: executionWidget),
+                    Expanded(child: CanvasWidget()),
                     SizedBox(
-                      height: consoleHeight,
-                      child: ConsoleWidget(
-                        output: appModel.consoleOutput,
-                        showDivider: mode == LayoutMode.both,
-                        key: _consoleKey,
-                      ),
-                    ),
+                        height: consoleHeight,
+                        child: Row(children: [
+                          Expanded(child: executionWidget),
+                          Expanded(
+                            child: ConsoleWidget(
+                              output: appModel.consoleOutput,
+                              showDivider: mode == LayoutMode.both,
+                              key: _consoleKey,
+                            ),
+                          )
+                        ])),
                   ],
                 );
               },
@@ -1031,7 +1037,7 @@ class SelectChannelWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appServices = Provider.of<AppServices>(context);
-    final channels = Channel.valuesWithoutLocalhost;
+    final channels = [Channel.main]; // .valuesWithoutLocalhost;
 
     return ValueListenableBuilder<Channel>(
       valueListenable: appServices.channel,
