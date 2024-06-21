@@ -16,8 +16,8 @@ export const onRequest: PagesFunction = async (context) => {
   const response = await context.next();
   response.headers.set('Access-Control-Allow-Origin', '*');
   response.headers.set('Access-Control-Max-Age', '86400');
-  response.headers.set('Cross-Origin-Embedder-Policy', "require-corp");
-  response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
-  response.headers.set("Cross-Origin-Resource-Policy", "cross-origin");
+  // response.headers.set('Cross-Origin-Embedder-Policy', "require-corp");
+  // response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
+  // response.headers.set("Cross-Origin-Resource-Policy", "cross-origin");
   return response;
 };
