@@ -28,23 +28,8 @@ class CanvasWidget extends StatefulWidget {
 }
 
 class _CanvasWidgetState extends State<CanvasWidget> {
-  // ThermionViewer? _viewer;
   @override
   void initState() {
-    // ThermionFlutterPlugin.createViewer().then((v) async {
-    //   _viewer = v;
-    //   setState(() {});
-    //   await _viewer!.initialized;
-    //   ThermionViewerJSDartBridge(_viewer!).bind();
-    //   print("Bound JS<->Dart bridge");
-    //   // final random = Random();
-    //   // await _viewer!.setBackgroundColor(1.0, 0.9, 0.2, 1.0);
-    //   await _viewer!.loadSkybox("default_env_skybox.ktx");
-    //   await _viewer!.loadIbl("default_env_ibl.ktx");
-      Timer.periodic(Duration(microseconds: 16667), (_) async {
-        setState(() {});
-      });
-    // });
     super.initState();
   }
 
@@ -53,25 +38,16 @@ class _CanvasWidgetState extends State<CanvasWidget> {
     super.dispose();
   }
 
-  ui.Image? _img;
-
-  Future capture() async {
-    try {
-      final ImageBitmap newSource = await promiseToFuture<ImageBitmap>(
-          window.createImageBitmap(
-              document.getElementById("canvas") as HTMLCanvasElement));
-      _img = await ui_web.createImageFromImageBitmap(newSource);
-    } catch (err) {
-      print(err);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    capture();
-    if (_img == null) {
-      return Container(color: Colors.white);
-    }
-    return RawImage(image: _img);
+    return Stack(children:[
+      Positioned.fill(child:Container(color:Colors.white)),
+      Positioned.fill(child:HtmlElementView.fromTagName(
+        tagName: 'canvas',
+        onElementCreated: (Object? element) {
+          final canvas = element! as HTMLCanvasElement;
+          canvas.id = 'canvas';
+          
+        })) ]);
   }
 }
