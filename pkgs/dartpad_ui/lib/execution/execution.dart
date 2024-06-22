@@ -32,7 +32,8 @@ web.Element _iFrameFactory(int viewId) {
     ..sandbox.add('allow-scripts')
     ..sandbox.add('allow-popups')
     ..sandbox.add('allow-popups-to-escape-sandbox')
-    ..src = 'frame.html'
+    ..sandbox.add('allow-same-origin')
+    ..src = "frame.html"
     ..style.border = 'none'
     ..style.width = '100%'
     ..style.height = '100%';
