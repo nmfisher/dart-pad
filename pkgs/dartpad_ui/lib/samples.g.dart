@@ -39,11 +39,7 @@ abstract final class Samples {
   ];
 
   static const Map<String, List<Sample>> categories = {
-    'Dart': [
-      _fibonacci,
-      _helloWorld,
-      _thermionViewer
-    ],
+    'Dart': [_fibonacci, _helloWorld, _thermionViewer],
     'Flutter': [
       _counter,
       _sunflower,
@@ -141,30 +137,38 @@ const _thermionViewer = Sample(
     source: r'''
 import 'dart:async';
 import 'dart:math';
-
-import 'package:thermion_dart/thermion_dart.dart';
 import 'package:thermion_dart/thermion_dart/compatibility/web/interop/thermion_viewer_wasm.dart';
 import 'package:vector_math/vector_math_64.dart';
 import 'package:web/web.dart';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
+//
+// Thermion is a 3D rendering toolkit for Dart and/or Flutter.
+// 
+// In this sample, we'll create a basic scene with a skybox, cube and light.
+//
+// The DartPad environment is slightly different from a regular Dart/Flutter 
+// app, so the first time you run this sample, it may appear that nothing is
+// happening (this is because we aren't keeping a warm instance of the backend 
+// compiler running on Google Cloud Run).
+//
+// If nothing happens when you hit "Run", just wait for a minute and try again.
+//
+//
 void main() async {
+
   // boilerplate to setup our rendering context properly on DartPad
   // you can safely ignore this
-  var module = window.parent!.getProperty("thermion_dart".toJS) as JSObject;
-  var canvas =
-      window.parent!.document!.getElementById('canvas') as HTMLCanvasElement;
-  canvas.width = window.innerWidth * 4;
-  canvas.height = window.innerHeight * 8;
-  print("Canvas dimensions : ${canvas.width}x${canvas.height}");
-
+  final module = await bootstrap();
+  final canvas = getCanvas();
+  
   // [ThermionViewer] is the main interface for rendering with Thermion
   // This class lets you load assets, lights, animations, and control the camera.
   final viewer = ThermionViewerWasm(module: module);
-
+    
   // since we're not in a Flutter application, we need to initialize this
-  // with the dimensions of the canvas
+  // with the dimensions of the rendering surface
   await viewer.initialize(canvas.width, canvas.height);
 
   // to test that everything is working, we'll just set the background color
@@ -213,6 +217,27 @@ void main() async {
     await viewer.setRotation(cube, radians, 0, 1, 0);
   });
   await completer.future;
+}
+
+HTMLCanvasElement getCanvas() { 
+    var canvas =
+      window.parent!.document.getElementById('canvas') as HTMLCanvasElement;
+  canvas.width = window.parent!.innerWidth;
+  canvas.height = window.parent!.innerHeight;
+  print("Canvas dimensions : ${canvas.width}x${canvas.height}");
+  return canvas; 
+}
+
+Future<JSObject> bootstrap() async { 
+
+  var moduleScript = window.parent!.document.createElement("script") as HTMLScriptElement;
+  moduleScript.src = "thermion_dart.js";
+  window.parent!.document.head!.appendChild(moduleScript);
+  await Future.delayed(Duration(seconds:1));
+  var moduleFn = window.parent!.getProperty("thermion_dart".toJS) as JSFunction;
+  var modulePromise = moduleFn.callAsFunction() as JSPromise<JSObject>;
+  var module = await modulePromise.toDart;
+  return module;
 }
 ''');
 
