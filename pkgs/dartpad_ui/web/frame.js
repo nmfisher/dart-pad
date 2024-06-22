@@ -19,8 +19,9 @@ function replaceJavaScript(value) {
 
 // Handles incoming messages.
 function messageHandler(e) {
+  
   var obj = e.data;
-  if (window.origin !== 'null' || e.source !== window.parent) return;
+  // if (window.origin !== 'null' || e.source !== window.parent) return;
   if (obj.command === 'execute') {
     runFlutterApp(obj.js, obj.canvasKitBaseUrl);
   }
@@ -29,8 +30,9 @@ function messageHandler(e) {
 function runFlutterApp(compiledScript, canvasKitBaseUrl) {
   var blob = new Blob([compiledScript], {type: 'text/javascript'});
   var url = URL.createObjectURL(blob);
+
   _flutter.loader.loadEntrypoint({
-    entrypointUrl: url,
+    entrypointUrl: url ,
     onEntrypointLoaded: async function(engineInitializer) {
       let appRunner = await engineInitializer.initializeEngine({
         canvasKitBaseUrl: canvasKitBaseUrl,
