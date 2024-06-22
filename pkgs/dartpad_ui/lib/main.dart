@@ -378,18 +378,17 @@ class _DartPadMainPageState extends State<DartPadMainPage>
                 return Column(
                   children: [
                     Expanded(child: CanvasWidget()),
-                    SizedBox(
-                        height: consoleHeight,
-                        child: Row(children: [
-                          Expanded(child: executionWidget),
-                          Expanded(
-                            child: ConsoleWidget(
-                              output: appModel.consoleOutput,
-                              showDivider: mode == LayoutMode.both,
-                              key: _consoleKey,
-                            ),
-                          )
-                        ])),
+                    Expanded(
+                        child: Column(children: [
+                      Expanded(child: executionWidget),
+                      Expanded(
+                        child: ConsoleWidget(
+                          output: appModel.consoleOutput,
+                          showDivider: mode == LayoutMode.both,
+                          key: _consoleKey,
+                        ),
+                      )
+                    ])),
                   ],
                 );
               },
