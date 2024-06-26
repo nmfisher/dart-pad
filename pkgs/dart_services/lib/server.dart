@@ -23,6 +23,12 @@ Future<void> main(List<String> args) async {
   final parser = ArgParser()
     ..addOption('port', valueHelp: 'port', help: 'The port to listen on.')
     ..addOption('redis-url', valueHelp: 'url', help: 'The redis server url.')
+    ..addOption('cloudflare-account-id',
+        valueHelp: 'url', help: 'Cloudflare account ID.')
+    ..addOption('cloudflare-namespace-id',
+        valueHelp: 'url', help: 'Cloudflare namespace ID.')
+    ..addOption('cloudflare-authorization-token',
+        valueHelp: 'url', help: 'Cloudflare auth token.')
     ..addOption('storage-bucket',
         valueHelp: 'name',
         help: 'The name of the Cloud Storage bucket for compilation artifacts.',
@@ -58,6 +64,9 @@ Future<void> main(List<String> args) async {
   emitLogsToStdout();
 
   final redisServerUri = results['redis-url'] as String?;
+  final cloudflareAccountId = results["cloudflare-account-id"] as String?;
+  final cloudflareNamespaceId = results["cloudflare-namespace-id"] as String?;
+  final cloudflareAuthorizationToken = results["cloudflare-authorization-token"] as String?;
   final storageBucket =
       results['storage-bucket'] as String? ?? 'nnbd_artifacts';
 
@@ -77,7 +86,7 @@ Starting dart-services:
   await GitHubOAuthHandler.initFromEnvironmentalVars();
 
   final server =
-      await EndpointsServer.serve(port, sdk, redisServerUri, storageBucket);
+      await EndpointsServer.serve(port, sdk, redisServerUri, storageBucket, cloudflareAccountId, cloudflareNamespaceId, cloudflareAuthorizationToken);
 
   _logger.info('Listening on port ${server.port}');
 }
@@ -88,9 +97,17 @@ class EndpointsServer {
     Sdk sdk,
     String? redisServerUri,
     String storageBucket,
+    String? cloudflareAccountId,
+    String? cloudflareNamespaceId,
+    String? cloudflareAuthorizationToken,
   ) async {
-    final endpointsServer =
-        EndpointsServer._(sdk, redisServerUri, storageBucket);
+    final endpointsServer = EndpointsServer._(
+        sdk,
+        redisServerUri,
+        storageBucket,
+        cloudflareAccountId,
+        cloudflareNamespaceId,
+        cloudflareAuthorizationToken);
     await endpointsServer._init();
 
     endpointsServer.server = await shelf.serve(
@@ -108,14 +125,23 @@ class EndpointsServer {
 
   late final CommonServerApi commonServer;
 
-  EndpointsServer._(Sdk sdk, String? redisServerUri, String storageBucket) {
+  EndpointsServer._(
+      Sdk sdk,
+      String? redisServerUri,
+      String storageBucket,
+      String? cloudflareAccountId,
+      String? cloudflareNamespaceId,
+      String? cloudflareAuthorizationToken) {
     // The name of the Cloud Run revision being run, for more detail please see:
     // https://cloud.google.com/run/docs/reference/container-contract#env-vars
     final serverVersion = Platform.environment['K_REVISION'];
 
-    final cache = redisServerUri == null
+    final cache = cloudflareAccountId == null
         ? NoopCache()
-        : RedisCache(redisServerUri, sdk, serverVersion);
+        : CloudflareKVCache(
+            accountId: cloudflareAccountId,
+            namespaceId: cloudflareNamespaceId!,
+            authorizationToken: cloudflareAuthorizationToken!);
 
     commonServer = CommonServerApi(CommonServerImpl(
       sdk,

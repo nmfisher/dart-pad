@@ -21,6 +21,7 @@ import 'pub.dart';
 import 'sdk.dart';
 import 'shelf_cors.dart' as shelf_cors;
 import 'utils.dart';
+import 'package:crypto/crypto.dart';
 
 part 'common_server.g.dart';
 
@@ -110,12 +111,29 @@ class CommonServerApi {
     }
   }
 
+  String _hashSource(String str) {
+    return sha1.convert(str.codeUnits).toString();
+  }
+
   @Route.post('$apiPrefix/compileDDC')
   Future<Response> compileDDC(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest =
         api.SourceRequest.fromJson(await request.readAsJson());
+
+    final sourceHash = _hashSource(sourceRequest.source);
+    final memCacheKey = '%%COMPILE_DDC:v0:source:$sourceHash';
+
+    final result = await impl.cache.get(memCacheKey);
+    if (result != null) {
+      log.info('CACHE: Cache hit for compileDDC');
+      final resultObj = const JsonDecoder().convert(result);
+      return ok(api.CompileDDCResponse(
+        result: resultObj['compiledJS'] as String,
+        modulesBaseUrl: resultObj['modulesBaseUrl'] as String,
+      ).toJson());
+    }
 
     final results = await serialize(() {
       return impl.compiler.compileDDC(sourceRequest.source);
@@ -126,6 +144,12 @@ class CommonServerApi {
       if (modulesBaseUrl != null && modulesBaseUrl.isEmpty) {
         modulesBaseUrl = null;
       }
+      await impl.cache.set(
+          memCacheKey,
+          jsonEncode({
+            "compiledJS": results.compiledJS!,
+            "modulesBaseUrl": modulesBaseUrl
+          }));
       return ok(api.CompileDDCResponse(
         result: results.compiledJS!,
         modulesBaseUrl: modulesBaseUrl,
